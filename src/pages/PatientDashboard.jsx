@@ -14,12 +14,13 @@ export default function PatientDashboard() {
     ]);
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
     const [isThinking, setIsThinking] = useState(false);
-    const [bookingStatus, setBookingStatus] = useState(null); // null | 'processing' | 'success'
+    const [bookingStatus, setBookingStatus] = useState(null); // null | 'processing' | 'success' | 'kyc-required'
+    const [hasSyncedDocs, setHasSyncedDocs] = useState(false);
     const [beds, setBeds] = useState([
-        { id: 101, type: "General Ward", price: "$50/day", status: "available" },
-        { id: 102, type: "Semi-Private", price: "$150/day", status: "available" },
-        { id: 201, type: "ICU", price: "$500/day", status: "occupied" },
-        { id: 204, type: "Private Suite", price: "$300/day", status: "available" },
+        { id: 101, type: "General Ward", price: "₹4,000/day", status: "available" },
+        { id: 102, type: "Semi-Private", price: "₹12,000/day", status: "available" },
+        { id: 201, type: "ICU", price: "₹40,000/day", status: "occupied" },
+        { id: 204, type: "Private Suite", price: "₹25,000/day", status: "available" },
     ]);
 
     const filteredBeds = beds.filter(b => wardFilter === 'All Wards' || b.type.includes(wardFilter));
@@ -31,11 +32,20 @@ export default function PatientDashboard() {
                 { id: Date.now(), name: "X-Ray Chest", date: "Today", status: "synced" },
                 ...prev
             ]);
+            setHasSyncedDocs(true);
             setIsFetchingDocs(false);
+            if (bookingStatus === 'kyc-required') {
+                setBookingStatus(null);
+            }
         }, 2000);
     };
 
     const handleBookBed = async (bedRequest) => {
+        if (!hasSyncedDocs) {
+            setBookingStatus('kyc-required');
+            return;
+        }
+
         setBookingStatus('processing');
         await new Promise(resolve => setTimeout(resolve, 1500));
         
@@ -87,10 +97,15 @@ export default function PatientDashboard() {
                 const availableBed = beds.find(b => b.type === reqType && b.status === "available");
                 
                 if (availableBed) {
-                    bookedBed = availableBed;
-                    setChatMessages(prev => [...prev, { text: `Action: Calling \`bookBed(userId, ${bookedBed.id})\`...`, isBot: true, isAction: true }]);
-                    await handleBookBed(bookedBed);
-                    botReply = `Success! I have booked a ${reqType} (Room ${bookedBed.id}) for you. You can see it updated in the Beds panel.`;
+                    if (!hasSyncedDocs) {
+                        botReply = `I found an available ${reqType} bed, but since this is your first booking, I need your documentation first. Please tap the 'Sync DigiLocker' button on your screen to verify your medical identity.`;
+                        setBookingStatus('kyc-required');
+                    } else {
+                        bookedBed = availableBed;
+                        setChatMessages(prev => [...prev, { text: `Action: Calling \`bookBed(userId, ${bookedBed.id})\`...`, isBot: true, isAction: true }]);
+                        await handleBookBed(bookedBed);
+                        botReply = `Success! I have booked a ${reqType} (Room ${bookedBed.id}) for you. You can see it updated in the Beds panel.`;
+                    }
                 } else {
                     botReply = `I'm sorry, I checked the system and we currently have no available beds in the ${reqType} section.`;
                 }
@@ -338,12 +353,24 @@ export default function PatientDashboard() {
             {/* Booking Overlay Notification */}
             {bookingStatus && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-                    <div style={{ background: 'var(--bg-main)', padding: '32px 48px', borderRadius: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, border: '1px solid var(--bg-nav)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
+                    <div style={{ background: 'var(--bg-main)', padding: '32px 48px', borderRadius: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, border: '1px solid var(--bg-nav)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', textAlign: 'center', maxWidth: 400 }}>
                         {bookingStatus === 'processing' ? (
                             <>
                                 <div style={{ width: 40, height: 40, borderRadius: '50%', border: '4px solid var(--bg-nav)', borderTopColor: 'var(--accent-primary)', animation: 'spin 1s linear infinite' }} />
                                 <h3 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Processing Booking...</h3>
                                 <p style={{ color: 'var(--text-secondary)' }}>Allocating bed and verifying records.</p>
+                            </>
+                        ) : bookingStatus === 'kyc-required' ? (
+                            <>
+                                <FileText size={48} color="var(--accent-primary)" />
+                                <h3 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Documents Required</h3>
+                                <p style={{ color: 'var(--text-secondary)', marginBottom: 8 }}>As this is your first booking, we need to verify your medical identification before proceeding to payment.</p>
+                                <div style={{ display: 'flex', gap: 12, width: '100%', marginTop: 8 }}>
+                                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => setBookingStatus(null)}>Cancel</button>
+                                    <button className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }} onClick={fetchDigilockerDocs} disabled={isFetchingDocs}>
+                                        {isFetchingDocs ? 'Syncing...' : <><DownloadCloud size={16} /> Sync DigiLocker</>}
+                                    </button>
+                                </div>
                             </>
                         ) : (
                             <>
