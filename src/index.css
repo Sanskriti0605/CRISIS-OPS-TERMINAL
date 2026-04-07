@@ -1,0 +1,317 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg-main: #050910;
+  --bg-card: rgba(16, 29, 43, 0.65);
+  --bg-card-solid: #101d2b;
+  --bg-nav: rgba(28, 63, 75, 0.75);
+  --accent-primary: #1f8b84;
+  --accent-hover: #26ab8a;
+  --alert-critical: #9df0da;
+  --text-primary: #ffffff;
+  --text-secondary: #82a3b0;
+
+  --grid-unit: 8px;
+  --font-heading: 'Rajdhani', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  height: 100vh;
+  overflow: hidden;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(28, 63, 75, 0.15) 0%, transparent 70%),
+    linear-gradient(rgba(5, 9, 16, 0.9), rgba(5, 9, 16, 0.9)),
+    url('https://www.transparenttextures.com/patterns/micro-carbon.png');
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.label {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Utilities */
+.text-alert {
+  color: var(--alert-critical);
+  text-shadow: 0 0 8px rgba(157, 240, 218, 0.6);
+}
+
+.text-accent {
+  color: var(--accent-primary);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--alert-critical), var(--accent-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glass panel */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(28, 63, 75, 0.3);
+  border-radius: var(--grid-unit);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+  opacity: 0.5;
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: var(--bg-main);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 10px rgba(31, 139, 132, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 15px rgba(31, 139, 132, 0.8);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-alert {
+  background: var(--alert-critical);
+  color: var(--bg-main);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 10px rgba(157, 240, 218, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-alert:hover {
+  background: #baf7e8;
+  box-shadow: 0 0 15px rgba(157, 240, 218, 0.8);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--accent-primary);
+  color: var(--accent-primary);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-outline:hover {
+  background: rgba(31, 139, 132, 0.2);
+}
+
+/* Inputs */
+.input-field {
+  width: 100%;
+  background: rgba(5, 9, 16, 0.5);
+  border: 1px solid rgba(28, 63, 75, 0.5);
+  padding: 12px 16px;
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(31, 139, 132, 0.2);
+}
+
+/* Animations */
+@keyframes urgent-pulse {
+
+  0%,
+  100% {
+    box-shadow: inset 0 0 10px var(--alert-critical), 0 0 20px rgba(157, 240, 218, 0.6);
+  }
+
+  50% {
+    box-shadow: inset 0 0 15px var(--alert-critical), 0 0 35px rgba(157, 240, 218, 0.9);
+  }
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Map Grid System */
+.beds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.bed-card {
+  background: rgba(130, 163, 176, 0.1);
+  border: 1px solid rgba(130, 163, 176, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.bed-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-primary);
+}
+
+.bed-card.critical {
+  background: rgba(157, 240, 218, 0.05);
+  border-color: var(--alert-critical);
+  box-shadow: inset 0 0 10px rgba(157, 240, 218, 0.2);
+}
+
+.bed-card.stable {
+  background: rgba(31, 139, 132, 0.1);
+  border-color: var(--accent-primary);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(28, 63, 75, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(28, 63, 75, 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(5, 9, 16, 0.85);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s;
+}
+
+.modal-content {
+  width: 900px;
+  max-width: 95vw;
+  max-height: 90vh;
+  background: var(--bg-card-solid);
+  border: 1px solid var(--accent-primary);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(31, 139, 132, 0.2);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Pages */
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 480px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 16px;
+  gap: 16px;
+}
