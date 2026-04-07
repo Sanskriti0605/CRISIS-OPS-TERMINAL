@@ -1,153 +1,261 @@
 import React, { useState } from 'react';
-import { Navigation, HeartPulse, Clock, Activity, Map, BedDouble, Stethoscope, Wind, FileHeart, Calendar, CheckCircle } from 'lucide-react';
+import { User, Activity, FileText, Bed, MessageSquare, DownloadCloud, Stethoscope, Send, CheckCircle, Clock, Wind, HeartPulse } from 'lucide-react';
 
 export default function PatientDashboard() {
-    const [selectedDoctor, setSelectedDoctor] = useState(null);
+    const [activeTab, setActiveTab] = useState('overview');
+    const [chatMessages, setChatMessages] = useState([
+        { text: "Hello John! I am your AI Health Assistant. How can I help you today?", isBot: true }
+    ]);
+    const [inputText, setInputText] = useState("");
+    const [wardFilter, setWardFilter] = useState("All Wards");
+    const [digiDocs, setDigiDocs] = useState([
+        { id: 1, name: "Last MRI Scan", date: "Oct 12, 2025", status: "synced" },
+        { id: 2, name: "Blood Report - Routine", date: "Sep 05, 2025", status: "synced" }
+    ]);
+    const [isFetchingDocs, setIsFetchingDocs] = useState(false);
 
-    // Hardcode patient-friendly medical profiles
-    const doctors = [
-        { name: 'Dr. Sarah Chen', dept: 'Cardiology', study: 'M.D., HMS / Harvard', experience: '14 Years', status: 'IN SURGERY', eta: 'Available 14:00', iconColor: 'var(--text-secondary)' },
-        { name: 'Dr. Marcus Webb', dept: 'ER Floor', study: 'D.O., Johns Hopkins', experience: '8 Years', status: 'ON ROUNDS', eta: 'Wait time: 20 Mins', iconColor: 'var(--accent-primary)' },
-        { name: 'Dr. Elena Rostova', dept: 'Neurology', study: 'Ph.D, M.D., Oxford Univ.', experience: '22 Years', status: 'IN CONSULTATION', eta: 'Wait time: 45 Mins', iconColor: 'var(--alert-critical)' },
-        { name: 'Dr. Ali Hassan', dept: 'Trauma', study: 'M.D., Mayo Clinic', experience: '12 Years', status: 'ARRIVING SHORTLY', eta: 'ETA 15 Mins', iconColor: 'var(--accent-primary)' },
+    const beds = [
+        { id: 101, type: "General Ward", price: "$50/day", status: "available" },
+        { id: 102, type: "Semi-Private", price: "$150/day", status: "available" },
+        { id: 201, type: "ICU", price: "$500/day", status: "occupied" },
+        { id: 204, type: "Private Suite", price: "$300/day", status: "available" },
     ];
 
+    const filteredBeds = beds.filter(b => wardFilter === 'All Wards' || b.type.includes(wardFilter));
+
+    const fetchDigilockerDocs = () => {
+        setIsFetchingDocs(true);
+        setTimeout(() => {
+            setDigiDocs([
+                { id: 3, name: "X-Ray Chest", date: "Today", status: "synced" },
+                ...digiDocs
+            ]);
+            setIsFetchingDocs(false);
+            setChatMessages(prev => [...prev, { text: "I have successfully fetched and synced your latest X-Ray report from Digilocker.", isBot: true }]);
+        }, 2000);
+    };
+
+    const handleSendMessage = (e) => {
+        e.preventDefault();
+        if (!inputText.trim()) return;
+        const userText = inputText;
+        setChatMessages(prev => [...prev, { text: userText, isBot: false }]);
+        setInputText("");
+
+        setTimeout(() => {
+            let botReply = "I understand. I'm recording this information in your health file.";
+            const lowerText = userText.toLowerCase();
+
+            if (lowerText.includes('book') || lowerText.includes('bed')) {
+                botReply = "You can book a bed right from the 'Book a Bed' tab above. We currently have beds available in General, Semi-Private, and Private Wards.";
+                setActiveTab('beds');
+            } else if (lowerText.includes('icu')) {
+                botReply = "The ICU is currently fully occupied. Please contact the front desk immediately if this is an emergency.";
+            } else if (lowerText.includes('fever') || lowerText.includes('pain')) {
+                botReply = "I've noted your symptoms. A nurse will check on you shortly. Please use the SOS button if the pain is severe.";
+            } else if (lowerText.includes('cost') || lowerText.includes('price')) {
+                botReply = "Our General Ward is $50/day, Semi-Private is $150/day, and Private Suites are $300/day.";
+            }
+
+            setChatMessages(prev => [...prev, { text: botReply, isBot: true }]);
+        }, 1000);
+    };
+
     return (
-        <div className="dashboard-layout" style={{ background: 'var(--bg-main)' }}>
-            {/* Client Header */}
-            <header className="glass-panel" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderColor: 'var(--alert-critical)' }}>
+        <div className="dashboard-layout" style={{ background: 'var(--bg-main)', color: 'var(--text-primary)', height: '100vh', overflowY: 'auto', display: 'block' }}>
+            {/* Header */}
+            <header className="glass-panel" style={{ padding: '20px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-card)', borderBottom: '1px solid var(--bg-nav)', borderRadius: 0, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <HeartPulse color="var(--alert-critical)" size={32} />
+                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--bg-nav)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-primary)' }}>
+                        <User size={24} />
+                    </div>
                     <div>
-                        <h1 className="text-alert" style={{ fontSize: '24px', letterSpacing: '2px' }}>HOSPITAL PUBLIC PORTAL</h1>
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>LIVE EMERGENCY PRE-VISIT DASHBOARD</div>
+                        <h1 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--accent-primary)', textTransform: 'capitalize' }}>Welcome back, John Doe</h1>
+                        <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Patient ID: HX-99201 | Condition: Stable</div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '8px 16px', borderRadius: '4px' }}>
-                        <span className="label" style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>YOUR REGISTRATION</span>
-                        <div style={{ fontFamily: 'var(--font-heading)', fontSize: '20px', color: 'var(--text-primary)' }}>VERIFIED ✓</div>
-                    </div>
-
-                    {/* Estimated ER Wait out of the box feature */}
-                    <div style={{ background: 'rgba(157, 240, 218, 0.1)', border: '1px solid var(--alert-critical)', padding: '8px 24px', borderRadius: '4px', textAlign: 'center' }}>
-                        <span className="label" style={{ color: 'var(--alert-critical)', fontSize: '10px' }}>ER CURRENT WAIT TIME</span>
-                        <div className="text-alert" style={{ fontFamily: 'var(--font-heading)', fontSize: '32px', fontWeight: 'bold' }}>
-                            18 MINS
-                        </div>
-                    </div>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                    <button onClick={() => setActiveTab('overview')} className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}>Overview</button>
+                    <button onClick={() => setActiveTab('beds')} className={`tab-btn ${activeTab === 'beds' ? 'active' : ''}`}>Book a Bed</button>
+                    <button onClick={() => setActiveTab('ai')} className={`tab-btn ${activeTab === 'ai' ? 'active' : ''}`}>AI & Documents</button>
                 </div>
             </header>
 
-            {/* Main Facilities Overview */}
-            <div className="glass-panel" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: 'rgba(5, 9, 16, 0.5)' }}>
-                <div style={{ textAlign: 'center' }}>
-                    <BedDouble size={28} className="text-accent" style={{ marginBottom: '8px' }} />
-                    <div className="label" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>AVAILABLE / EMPTY BEDS</div>
-                    <div style={{ fontSize: '32px', fontFamily: 'var(--font-heading)', fontWeight: 'bold' }}>32</div>
-                </div>
-                <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.1)' }}></div>
+            {/* Main Content */}
+            <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, maxWidth: 1200, margin: '0 auto', width: '100%' }}>
 
-                <div style={{ textAlign: 'center' }}>
-                    <Stethoscope size={28} className="text-accent" style={{ marginBottom: '8px' }} />
-                    <div className="label" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>DOCTORS CURRENTLY ON ROUNDS</div>
-                    <div style={{ fontSize: '32px', fontFamily: 'var(--font-heading)', fontWeight: 'bold' }}>45</div>
-                </div>
-                <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.1)' }}></div>
-
-                <div style={{ textAlign: 'center' }}>
-                    <Wind size={28} className="text-accent" style={{ marginBottom: '8px' }} />
-                    <div className="label" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>AVAILABLE VENTILATORS</div>
-                    <div style={{ fontSize: '32px', fontFamily: 'var(--font-heading)', fontWeight: 'bold' }}>4</div>
-                </div>
-                <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.1)' }}></div>
-
-                <div style={{ textAlign: 'center' }}>
-                    <Activity size={28} color="var(--alert-critical)" style={{ marginBottom: '8px' }} />
-                    <div className="label" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>HOSPITAL ALERT LEVEL</div>
-                    <div className="text-alert" style={{ fontSize: '32px', fontFamily: 'var(--font-heading)', fontWeight: 'bold' }}>ELEVATED</div>
-                </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr) 350px', gap: '16px', flex: 1, overflow: 'hidden' }}>
-
-                {/* Physician Schedules & Info */}
-                <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(16, 29, 43, 0.9)' }}>
-                        <h2 style={{ fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}><Calendar size={18} /> DOCTOR SCHEDULE / TEAM ARRIVALS</h2>
-                    </div>
-                    <div style={{ padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {doctors.map((doc, idx) => (
-                            <div
-                                key={idx}
-                                onClick={() => setSelectedDoctor(doc)}
-                                style={{
-                                    background: 'rgba(28, 63, 75, 0.2)',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    padding: '16px',
-                                    borderRadius: '8px',
-                                    display: 'flex',
-                                    alignItems: 'flex-start',
-                                    gap: '16px',
-                                    cursor: 'pointer',
-                                    borderLeft: `4px solid ${doc.iconColor}`,
-                                    transition: 'all 0.2s',
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.borderColor = doc.iconColor}
-                                onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
-                            >
-                                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(16,29,43,0.8)', border: `2px solid ${doc.iconColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Stethoscope size={24} color={doc.iconColor} />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                        <h3 style={{ fontSize: '18px' }}>{doc.name}</h3>
-                                        <span className="label" style={{ color: doc.iconColor, background: 'rgba(0,0,0,0.5)', padding: '2px 8px', borderRadius: '4px' }}>{doc.status}</span>
-                                    </div>
-                                    <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
-                                        <strong>{doc.dept}</strong> | Clinical Exp: {doc.experience}
-                                    </div>
-                                    <div style={{ fontSize: '12px', color: 'var(--text-primary)', display: 'flex', justifyContent: 'space-between' }}>
-                                        <span style={{ opacity: 0.8 }}>{doc.study}</span>
-                                        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 'bold' }}><Clock size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {doc.eta}</span>
+                {activeTab === 'overview' && (
+                    <>
+                        <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Your Current Vitals</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                            {[
+                                { label: "Heart Rate", value: "72 bpm", icon: <Activity />, color: "var(--accent-primary)" },
+                                { label: "SpO2 Level", value: "98%", icon: <Wind />, color: "var(--accent-hover)" },
+                                { label: "Blood Pressure", value: "120/80", icon: <HeartPulse />, color: "var(--accent-primary)" },
+                                { label: "Temperature", value: "98.6°F", icon: <Activity />, color: "var(--accent-hover)" }
+                            ].map((v, i) => (
+                                <div key={i} className="glass-panel" style={{ padding: 24, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--bg-nav)', display: 'flex', alignItems: 'center', gap: 16 }}>
+                                    <div style={{ color: v.color }}>{v.icon}</div>
+                                    <div>
+                                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 1 }}>{v.label}</div>
+                                        <div style={{ fontSize: 24, fontWeight: 700, marginTop: 4 }}>{v.value}</div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Pre-Visit Triage & Info */}
-                <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(16, 29, 43, 0.9)' }}>
-                        <h2 style={{ fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }} className="text-alert"><FileHeart size={18} /> VIRTUAL ASSISTANT & MAP</h2>
-                    </div>
-                    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-                        {/* Virtual Check-in */}
-                        <div style={{ background: 'rgba(157, 240, 218, 0.05)', padding: '16px', borderRadius: '8px', border: '1px solid var(--alert-critical)' }}>
-                            <h3 className="text-alert" style={{ fontSize: '14px', marginBottom: '8px' }}>PRE-VISIT FORM FAST-TRACK</h3>
-                            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '16px' }}>Complete your triage questionnaire now to jump the queue before arriving.</p>
-                            <button className="btn-alert" style={{ width: '100%', fontSize: '12px', padding: '8px' }}>START TRIAGE FORM</button>
+                            ))}
                         </div>
 
-                        {/* Out of the box: Navigate */}
-                        <div style={{ background: 'rgba(28, 63, 75, 0.3)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <h3 style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}><Map size={16} className="text-accent" /> HOSPITAL CAMPUS MAP</h3>
-                            <div style={{ height: '120px', background: '#0a121c', borderRadius: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-                                <Navigation size={32} style={{ marginBottom: '8px', color: 'var(--accent-primary)' }} />
-                                <span style={{ fontSize: '10px', fontFamily: 'var(--font-heading)' }}>TAP TO OPEN NAVIGATION</span>
+                        <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', marginTop: 16 }}>Ongoing Treatments</h2>
+                        <div className="glass-panel" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 24, border: '1px solid var(--bg-nav)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                {[
+                                    { name: "Physiotherapy Session", time: "2:00 PM today", status: "upcoming" },
+                                    { name: "Antibiotics Administration", time: "6:00 PM today", status: "upcoming" }
+                                ].map((t, i) => (
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'var(--bg-main)', borderRadius: 8 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            <Stethoscope size={20} color="var(--accent-primary)" />
+                                            <div>
+                                                <div style={{ fontWeight: 500 }}>{t.name}</div>
+                                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{t.time}</div>
+                                            </div>
+                                        </div>
+                                        <button className="btn-outline" style={{ fontSize: 12 }}>Reschedule</button>
+                                    </div>
+                                ))}
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px', fontSize: '12px' }}>
-                                <CheckCircle size={14} className="text-accent" /> <span>ER Parking Sector C is currently Open</span>
+                        </div>
+                    </>
+                )}
+
+                {activeTab === 'beds' && (
+                    <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Available Hospital Beds</h2>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <select
+                                    className="input-field"
+                                    style={{ width: 'auto', padding: '8px 16px', background: 'var(--bg-main)', color: 'var(--text-primary)', border: '1px solid var(--bg-nav)' }}
+                                    value={wardFilter}
+                                    onChange={(e) => setWardFilter(e.target.value)}
+                                >
+                                    <option value="All Wards">All Wards</option>
+                                    <option value="General">General</option>
+                                    <option value="Semi-Private">Semi-Private</option>
+                                    <option value="ICU">ICU</option>
+                                    <option value="Private Suite">Private Suite</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+                            {filteredBeds.map((b) => (
+                                <div key={b.id} className="glass-panel" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 24, border: '1px solid var(--bg-nav)', opacity: b.status === 'occupied' ? 0.6 : 1 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent-primary)' }}><Bed size={20} /> <span style={{ fontWeight: 600 }}>Room {b.id}</span></div>
+                                        <span style={{ fontSize: 12, padding: '4px 8px', borderRadius: 4, background: b.status === 'available' ? 'rgba(44, 105, 78, 0.1)' : 'rgba(186, 26, 26, 0.1)', color: b.status === 'available' ? '#2c694e' : 'var(--alert-critical)' }}>
+                                            {b.status === 'available' ? 'AVAILABLE' : 'OCCUPIED'}
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 4 }}>{b.type}</div>
+                                    <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>{b.price}</div>
+                                    <button className="btn-primary" disabled={b.status === 'occupied'} style={{ width: '100%', opacity: b.status === 'occupied' ? 0.5 : 1 }}>
+                                        {b.status === 'available' ? 'Book Now' : 'Currently Full'}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {activeTab === 'ai' && (
+                    <div style={{ display: 'flex', gap: '24px', height: '65vh' }}>
+
+                        {/* Digilocker Panel */}
+                        <div className="glass-panel" style={{ flex: 1, background: 'var(--bg-card)', borderRadius: 12, display: 'flex', flexDirection: 'column', border: '1px solid var(--bg-nav)' }}>
+                            <div style={{ padding: 20, borderBottom: '1px solid var(--bg-nav)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600 }}><DownloadCloud color="var(--accent-primary)" /> DigiLocker Sync</div>
+                                <button onClick={fetchDigilockerDocs} disabled={isFetchingDocs} className="btn-primary" style={{ padding: '8px 16px', fontSize: 12 }}>
+                                    {isFetchingDocs ? 'Syncing...' : 'Sync Latest'}
+                                </button>
+                            </div>
+                            <div style={{ padding: 20, flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                {digiDocs.map(doc => (
+                                    <div key={doc.id} style={{ padding: 16, background: 'var(--bg-nav)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            <FileText size={20} color="var(--text-secondary)" />
+                                            <div>
+                                                <div style={{ fontSize: 14, fontWeight: 500 }}>{doc.name}</div>
+                                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>Fetched: {doc.date}</div>
+                                            </div>
+                                        </div>
+                                        <CheckCircle size={16} color="#2c694e" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* AI Assistant Chat */}
+                        <div className="glass-panel" style={{ flex: 1, background: 'var(--bg-card)', borderRadius: 12, display: 'flex', flexDirection: 'column', border: '1px solid var(--bg-nav)' }}>
+                            <div style={{ padding: 20, borderBottom: '1px solid var(--bg-nav)', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600 }}>
+                                <MessageSquare color="var(--accent-primary)" /> Sanctuary Health AI
+                            </div>
+                            <div style={{ padding: 20, flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                {chatMessages.map((m, i) => (
+                                    <div key={i} style={{ display: 'flex', justifyContent: m.isBot ? 'flex-start' : 'flex-end' }}>
+                                        <div style={{
+                                            background: m.isBot ? 'var(--bg-main)' : 'var(--accent-primary)',
+                                            color: m.isBot ? 'var(--text-primary)' : '#fff',
+                                            padding: '12px 16px',
+                                            borderRadius: m.isBot ? '12px 12px 12px 0' : '12px 12px 0 12px',
+                                            maxWidth: '80%',
+                                            fontSize: 14,
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                        }}>
+                                            {m.text}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ padding: 20, borderTop: '1px solid var(--bg-nav)' }}>
+                                <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: 8 }}>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        placeholder="Ask about your health, records, or next checkup..."
+                                        value={inputText}
+                                        onChange={(e) => setInputText(e.target.value)}
+                                        style={{ background: 'var(--bg-main)', border: '1px solid var(--bg-nav)', color: 'var(--text-primary)', flex: 1 }}
+                                    />
+                                    <button type="submit" className="btn-primary" style={{ padding: '12px' }}><Send size={18} /></button>
+                                </form>
                             </div>
                         </div>
 
                     </div>
-                </div>
-
+                )}
             </div>
 
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .tab-btn {
+                    background: transparent;
+                    border: none;
+                    color: var(--text-secondary);
+                    font-family: var(--font-heading);
+                    font-weight: 600;
+                    font-size: 14px;
+                    padding: 8px 16px;
+                    cursor: pointer;
+                    border-bottom: 2px solid transparent;
+                    transition: all 0.2s;
+                }
+                .tab-btn.active {
+                    color: var(--accent-primary);
+                    border-bottom-color: var(--accent-primary);
+                }
+                .tab-btn:hover {
+                    color: var(--accent-primary);
+                }
+            `}} />
         </div>
     )
 }

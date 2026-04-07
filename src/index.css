@@ -1,18 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-  --bg-main: #050910;
-  --bg-card: rgba(16, 29, 43, 0.65);
-  --bg-card-solid: #101d2b;
-  --bg-nav: rgba(28, 63, 75, 0.75);
-  --accent-primary: #1f8b84;
-  --accent-hover: #26ab8a;
-  --alert-critical: #9df0da;
-  --text-primary: #ffffff;
-  --text-secondary: #82a3b0;
+  --bg-main: #f7f9fb;
+  --bg-card: #ffffff;
+  --bg-card-solid: #ffffff;
+  --bg-nav: #eceef0;
+  --accent-primary: #00629e;
+  --accent-hover: #004a78;
+  --alert-critical: #ba1a1a;
+  --text-primary: #191c1e;
+  --text-secondary: #414750;
 
   --grid-unit: 8px;
-  --font-heading: 'Rajdhani', sans-serif;
+  --font-heading: 'Public Sans', sans-serif;
   --font-body: 'Inter', sans-serif;
 }
 
@@ -28,10 +28,6 @@ body {
   font-family: var(--font-body);
   height: 100vh;
   overflow: hidden;
-  background-image:
-    radial-gradient(circle at 50% 0%, rgba(28, 63, 75, 0.15) 0%, transparent 70%),
-    linear-gradient(rgba(5, 9, 16, 0.9), rgba(5, 9, 16, 0.9)),
-    url('https://www.transparenttextures.com/patterns/micro-carbon.png');
 }
 
 h1,
@@ -42,8 +38,8 @@ h5,
 h6,
 .label {
   font-family: var(--font-heading);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
 }
 
 /* Utilities */
@@ -59,6 +55,7 @@ h6,
 .text-gradient {
   background: linear-gradient(135deg, var(--alert-critical), var(--accent-primary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
