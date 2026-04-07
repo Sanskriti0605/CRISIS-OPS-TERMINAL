@@ -87,13 +87,13 @@ export default function Dashboard() {
             </header>
 
             {/* 2. Operations / Facility Overview Stats Bar */}
-            <div className="glass-panel" style={{ padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(5, 9, 16, 0.8)' }}>
+            <div className="glass-panel" style={{ padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(229, 231, 235, 0.8)' }}>
                 <div style={{ display: 'flex', gap: '32px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <Stethoscope size={20} className="text-accent" />
                         <div>
                             <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontFamily: 'var(--font-heading)' }}>DOCTORS ON ROUNDS</div>
-                            <div style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>45 / 62 <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>ACTIVE</span></div>
+                            <div style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>3 / 6 <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>ACTIVE</span></div>
                         </div>
                     </div>
                     <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
@@ -102,7 +102,7 @@ export default function Dashboard() {
                         <UserCheck size={20} className="text-accent" />
                         <div>
                             <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontFamily: 'var(--font-heading)' }}>FIELD NURSES</div>
-                            <div style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>142 <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>DEPLOYED</span></div>
+                            <div style={{ fontSize: '18px', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>20 <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>DEPLOYED</span></div>
                         </div>
                     </div>
                     <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
@@ -132,7 +132,7 @@ export default function Dashboard() {
                 {/* Left Col: Doctors Schedule & AI OverWatch */}
                 <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
 
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(16, 29, 43, 0.9)' }}>
+                    <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(243, 244, 246, 0.9)' }}>
                         <h2 style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}><Users size={16} /> DOCTOR SCHEDULE & SHIFTS</h2>
                     </div>
                     <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '30%', overflowY: 'auto' }}>
@@ -156,7 +156,7 @@ export default function Dashboard() {
                         ))}
                     </div>
 
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', borderTop: '1px solid rgba(255,255,255,0.1)', background: 'rgba(16, 29, 43, 0.9)' }}>
+                    <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', borderTop: '1px solid rgba(255,255,255,0.1)', background: 'rgba(243, 244, 246, 0.9)' }}>
                         <h2 style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}><Radio size={16} /> OVERWATCH AI ALERTS</h2>
                     </div>
                     <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, overflowY: 'auto' }}>
@@ -176,7 +176,7 @@ export default function Dashboard() {
 
                 {/* Center: Systematic Beds Grid */}
                 <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(16, 29, 43, 0.9)' }}>
+                    <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(243, 244, 246, 0.9)' }}>
                         <h2 style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}><Database size={16} /> FLOOR PATIENTS (CLICK TO EXPAND)</h2>
                         <div style={{ display: 'flex', gap: '16px', fontSize: '10px', fontFamily: 'var(--font-heading)' }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><div style={{ width: 8, height: 8, background: 'var(--alert-critical)' }}></div> CRITICAL (6)</span>
@@ -210,12 +210,12 @@ export default function Dashboard() {
 
                 {/* Right: Logistics & Vital Tracking */}
                 <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(16, 29, 43, 0.9)' }}>
+                    <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(243, 244, 246, 0.9)' }}>
                         <h2 style={{ fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}><AlertTriangle size={16} className="text-alert" /> ACTION REQUIRED</h2>
                     </div>
                     <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
 
-                        <div style={{ border: '1px solid rgba(157, 240, 218, 0.3)', padding: '12px', borderRadius: '4px', background: 'rgba(5, 9, 16, 0.5)' }}>
+                        <div style={{ border: '1px solid rgba(157, 240, 218, 0.3)', padding: '12px', borderRadius: '4px', background: 'rgba(229, 231, 235, 0.8)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-heading)', marginBottom: '8px' }}>
                                 <span className="text-alert" style={{ fontSize: '14px' }}>PATIENT #9102 [BD-108]</span>
                                 <span className="text-alert" style={{ fontSize: '14px', animation: 'blink 1s infinite' }}>CODE BLUE</span>
@@ -268,7 +268,7 @@ export default function Dashboard() {
                 <div className="modal-overlay" onClick={() => setSelectedBed(null)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
-                        <div style={{ padding: '24px', background: 'rgba(16, 29, 43, 0.95)', borderBottom: `2px solid ${selectedBed.status === 'critical' ? 'var(--alert-critical)' : 'var(--accent-primary)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ padding: '24px', background: 'rgba(243, 244, 246, 0.9)', borderBottom: `2px solid ${selectedBed.status === 'critical' ? 'var(--alert-critical)' : 'var(--accent-primary)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                                 <div style={{ width: '80px', height: '80px', background: 'var(--bg-main)', border: `2px solid ${selectedBed.status === 'critical' ? 'var(--alert-critical)' : 'var(--accent-primary)'}`, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <ScanHeart size={40} className={selectedBed.status === 'critical' ? 'text-alert' : 'text-accent'} />

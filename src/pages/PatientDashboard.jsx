@@ -4,7 +4,7 @@ import { User, Activity, FileText, Bed, MessageSquare, DownloadCloud, Stethoscop
 export default function PatientDashboard() {
     const [activeTab, setActiveTab] = useState('overview');
     const [chatMessages, setChatMessages] = useState([
-        { text: "Hello John! I am your AI Health Assistant. How can I help you today?", isBot: true }
+        { text: "Hello John! I am your AI Health Assistant. How can I help you today?", isBot: true, isAction: false }
     ]);
     const [inputText, setInputText] = useState("");
     const [wardFilter, setWardFilter] = useState("All Wards");
@@ -13,52 +13,117 @@ export default function PatientDashboard() {
         { id: 2, name: "Blood Report - Routine", date: "Sep 05, 2025", status: "synced" }
     ]);
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
-
-    const beds = [
+    const [isThinking, setIsThinking] = useState(false);
+    const [beds, setBeds] = useState([
         { id: 101, type: "General Ward", price: "$50/day", status: "available" },
         { id: 102, type: "Semi-Private", price: "$150/day", status: "available" },
         { id: 201, type: "ICU", price: "$500/day", status: "occupied" },
         { id: 204, type: "Private Suite", price: "$300/day", status: "available" },
-    ];
+    ]);
 
     const filteredBeds = beds.filter(b => wardFilter === 'All Wards' || b.type.includes(wardFilter));
 
     const fetchDigilockerDocs = () => {
         setIsFetchingDocs(true);
         setTimeout(() => {
-            setDigiDocs([
-                { id: 3, name: "X-Ray Chest", date: "Today", status: "synced" },
-                ...digiDocs
+            setDigiDocs(prev => [
+                { id: Date.now(), name: "X-Ray Chest", date: "Today", status: "synced" },
+                ...prev
             ]);
             setIsFetchingDocs(false);
-            setChatMessages(prev => [...prev, { text: "I have successfully fetched and synced your latest X-Ray report from Digilocker.", isBot: true }]);
         }, 2000);
     };
 
-    const handleSendMessage = (e) => {
+    const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!inputText.trim()) return;
         const userText = inputText;
         setChatMessages(prev => [...prev, { text: userText, isBot: false }]);
         setInputText("");
+        setIsThinking(true);
 
-        setTimeout(() => {
-            let botReply = "I understand. I'm recording this information in your health file.";
-            const lowerText = userText.toLowerCase();
+        const lowerText = userText.toLowerCase();
 
-            if (lowerText.includes('book') || lowerText.includes('bed')) {
-                botReply = "You can book a bed right from the 'Book a Bed' tab above. We currently have beds available in General, Semi-Private, and Private Wards.";
-                setActiveTab('beds');
-            } else if (lowerText.includes('icu')) {
-                botReply = "The ICU is currently fully occupied. Please contact the front desk immediately if this is an emergency.";
-            } else if (lowerText.includes('fever') || lowerText.includes('pain')) {
-                botReply = "I've noted your symptoms. A nurse will check on you shortly. Please use the SOS button if the pain is severe.";
-            } else if (lowerText.includes('cost') || lowerText.includes('price')) {
-                botReply = "Our General Ward is $50/day, Semi-Private is $150/day, and Private Suites are $300/day.";
+        // Simulate agent reasoning delay
+        await new Promise(resolve => setTimeout(resolve, 600));
+
+        let botReply = "";
+
+        // Agentic Tool Execution
+        if (lowerText.includes('sync') || lowerText.includes('fetch') || lowerText.includes('document') || lowerText.includes('report')) {
+            setChatMessages(prev => [...prev, { text: "Thought: User wants to sync documents. Calling `fetchDigilockerDocs` tool...", isBot: true, isAction: true }]);
+            await new Promise(resolve => setTimeout(resolve, 800));
+            fetchDigilockerDocs();
+            botReply = "I have successfully run the tool to sync your latest reports from Digilocker. They will appear in your panel momentarily.";
+        } 
+        else if (lowerText.includes('book') || lowerText.includes('reserve') || lowerText.includes('need a bed')) {
+            let reqType = null;
+            if (lowerText.includes('general')) reqType = "General Ward";
+            else if (lowerText.includes('semi')) reqType = "Semi-Private";
+            else if (lowerText.includes('private')) reqType = "Private Suite";
+            else if (lowerText.includes('icu')) reqType = "ICU";
+
+            if (reqType) {
+                setChatMessages(prev => [...prev, { text: `Thought: Checking availability using \`checkBeds("${reqType}")\`...`, isBot: true, isAction: true }]);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                let bookedBed = null;
+                setBeds(currentBeds => {
+                    const availableBed = currentBeds.find(b => b.type === reqType && b.status === "available");
+                    if (availableBed) {
+                        bookedBed = availableBed;
+                        return currentBeds.map(b => b.id === availableBed.id ? { ...b, status: "occupied" } : b);
+                    }
+                    return currentBeds;
+                });
+                
+                if (bookedBed) {
+                    setChatMessages(prev => [...prev, { text: `Action: Calling \`bookBed(userId, ${bookedBed.id})\`...`, isBot: true, isAction: true }]);
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    botReply = `Success! I have booked a ${reqType} (Room ${bookedBed.id}) for you. You can see it updated in the Beds panel.`;
+                } else {
+                    botReply = `I'm sorry, I checked the system and we currently have no available beds in the ${reqType} section.`;
+                }
+            } else {
+                botReply = "I can definitely book a bed for you. Could you please specify if you want a General, Semi-Private, or Private bed?";
             }
+        } 
+        else if (lowerText.includes('vitals') || lowerText.includes('heart') || lowerText.includes('blood pressure') || lowerText.includes('health')) {
+             setChatMessages(prev => [...prev, { text: "Action: Calling `getPatientVitals(userId)`...", isBot: true, isAction: true }]);
+             await new Promise(resolve => setTimeout(resolve, 800));
+             botReply = "I just pulled your vitals from the monitors: Heart rate is 72 bpm, SpO2 is 98%, and Blood Pressure is 120/80. Everything looks stable.";
+        } 
+        else if (lowerText.includes('fever') || lowerText.includes('pain') || lowerText.includes('hurt') || lowerText.includes('emergency')) {
+             setChatMessages(prev => [...prev, { text: "Thought: Patient is experiencing distress. Action: Calling `alertStaff(userId, priority: HIGH)`...", isBot: true, isAction: true }]);
+             await new Promise(resolve => setTimeout(resolve, 800));
+             botReply = "I've logged your symptoms and alerted an on-duty nurse. Someone will check on you shortly. Please use the SOS button on your bed if this is critical.";
+        }
+        else if (lowerText.includes('hi') || lowerText.includes('hello') || lowerText.includes('hey')) {
+             botReply = "Hello! How are you feeling today? I'm your AI health assistant. Let me know if you need to view your vitals, fetch documents, or book a bed.";
+        }
+        else if (lowerText.includes('name') || lowerText.includes('who are you')) {
+             botReply = "I am Sanctuary Health AI, your personal hospital assistant. I can help manage your stay seamlessly.";
+        }
+        else if (lowerText.includes('doctor')) {
+             botReply = "Your assigned doctor is currently reviewing other patients on rounds. Would you like me to flag your record so they visit you next?";
+        }
+        else if (lowerText.includes('food') || lowerText.includes('hungry') || lowerText.includes('eat')) {
+             botReply = "Meals are served based on your dietary requirements. Let me notify the cafeteria that you are requesting your next meal early.";
+        }
+        else if (lowerText.includes('discharge') || lowerText.includes('leave') || lowerText.includes('home')) {
+             botReply = "Discharge procedures usually take a couple of hours after the doctor's final approval. Your records indicate you might be eligible soon.";
+        }
+        else if (lowerText.includes('thank')) {
+             botReply = "You're completely welcome! Wishing you a speedy recovery. Let me know if there's anything else you need.";
+        }
+        else {
+            // Dynamic fallback mimicking understanding and logging the user's specific input
+            const echoed = userText.replace(/[.,?!]/g, '').trim();
+            botReply = `I understand you're bringing up "${echoed}". I have recorded this specific request in your digital medical chart. The care team will review this shortly. Is there anything else you need assistance with?`;
+        }
 
-            setChatMessages(prev => [...prev, { text: botReply, isBot: true }]);
-        }, 1000);
+        setChatMessages(prev => [...prev, { text: botReply, isBot: true }]);
+        setIsThinking(false);
     };
 
     return (
@@ -202,18 +267,39 @@ export default function PatientDashboard() {
                                 {chatMessages.map((m, i) => (
                                     <div key={i} style={{ display: 'flex', justifyContent: m.isBot ? 'flex-start' : 'flex-end' }}>
                                         <div style={{
-                                            background: m.isBot ? 'var(--bg-main)' : 'var(--accent-primary)',
-                                            color: m.isBot ? 'var(--text-primary)' : '#fff',
-                                            padding: '12px 16px',
+                                            background: m.isAction ? 'transparent' : (m.isBot ? 'var(--bg-main)' : 'var(--accent-primary)'),
+                                            color: m.isAction ? 'var(--text-secondary)' : (m.isBot ? 'var(--text-primary)' : '#fff'),
+                                            padding: m.isAction ? '8px 16px' : '12px 16px',
                                             borderRadius: m.isBot ? '12px 12px 12px 0' : '12px 12px 0 12px',
                                             maxWidth: '80%',
-                                            fontSize: 14,
-                                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                            fontSize: m.isAction ? 12 : 14,
+                                            fontFamily: m.isAction ? 'monospace' : 'inherit',
+                                            boxShadow: m.isAction ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+                                            border: m.isAction ? '1px dashed var(--bg-nav)' : 'none'
                                         }}>
                                             {m.text}
                                         </div>
                                     </div>
                                 ))}
+                                {isThinking && (
+                                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                        <div style={{
+                                            background: 'var(--bg-main)',
+                                            color: 'var(--text-secondary)',
+                                            padding: '12px 16px',
+                                            borderRadius: '12px 12px 12px 0',
+                                            fontSize: 14,
+                                            fontStyle: 'italic',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px'
+                                        }}>
+                                            <div className="typing-dot" style={{width: 6, height: 6, background: 'var(--text-secondary)', borderRadius: '50%', animation: 'typing 1.4s infinite ease-in-out both', animationDelay: '-0.32s'}} />
+                                            <div className="typing-dot" style={{width: 6, height: 6, background: 'var(--text-secondary)', borderRadius: '50%', animation: 'typing 1.4s infinite ease-in-out both', animationDelay: '-0.16s'}} />
+                                            <div className="typing-dot" style={{width: 6, height: 6, background: 'var(--text-secondary)', borderRadius: '50%', animation: 'typing 1.4s infinite ease-in-out both'}} />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div style={{ padding: 20, borderTop: '1px solid var(--bg-nav)' }}>
                                 <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: 8 }}>
@@ -254,6 +340,10 @@ export default function PatientDashboard() {
                 }
                 .tab-btn:hover {
                     color: var(--accent-primary);
+                }
+                @keyframes typing {
+                    0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+                    40% { transform: scale(1); opacity: 1; }
                 }
             `}} />
         </div>

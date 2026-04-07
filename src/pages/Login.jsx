@@ -68,12 +68,12 @@ export default function Login() {
                     onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                    <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', color: '#2c694e' }}>
+                    <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', color: '#00629e' }}>
                         <Cpu size={40} />
                     </div>
                     <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '12px' }}>Staff Terminal</h2>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '14px', lineHeight: 1.5 }}>Secure access for doctors, nurses, and crisis operators. View real-time hospital triage and patient overviews.</p>
-                    <button className="btn-outline" style={{ width: '100%', borderColor: '#2c694e', color: '#2c694e' }}>Login as Staff</button>
+                    <button className="btn-primary" style={{ width: '100%' }}>Login as Staff</button>
                 </div>
 
             </div>
