@@ -14,6 +14,7 @@ export default function PatientDashboard() {
     ]);
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
     const [isThinking, setIsThinking] = useState(false);
+    const [bookingStatus, setBookingStatus] = useState(null); // null | 'processing' | 'success'
     const [beds, setBeds] = useState([
         { id: 101, type: "General Ward", price: "$50/day", status: "available" },
         { id: 102, type: "Semi-Private", price: "$150/day", status: "available" },
@@ -32,6 +33,21 @@ export default function PatientDashboard() {
             ]);
             setIsFetchingDocs(false);
         }, 2000);
+    };
+
+    const handleBookBed = async (bedRequest) => {
+        setBookingStatus('processing');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        setBeds(currentBeds => currentBeds.map(b => b.id === bedRequest.id ? { ...b, status: "occupied" } : b));
+        
+        // Save booking to localStorage for Staff Terminal to read
+        const newBooking = { bedId: bedRequest.id, type: bedRequest.type, patient: 'John Doe', time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
+        const savedBookings = JSON.parse(localStorage.getItem('recentBookings') || '[]');
+        localStorage.setItem('recentBookings', JSON.stringify([newBooking, ...savedBookings]));
+
+        setBookingStatus('success');
+        setTimeout(() => setBookingStatus(null), 3000); // clear notification
     };
 
     const handleSendMessage = async (e) => {
@@ -68,18 +84,12 @@ export default function PatientDashboard() {
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 
                 let bookedBed = null;
-                setBeds(currentBeds => {
-                    const availableBed = currentBeds.find(b => b.type === reqType && b.status === "available");
-                    if (availableBed) {
-                        bookedBed = availableBed;
-                        return currentBeds.map(b => b.id === availableBed.id ? { ...b, status: "occupied" } : b);
-                    }
-                    return currentBeds;
-                });
+                const availableBed = beds.find(b => b.type === reqType && b.status === "available");
                 
-                if (bookedBed) {
+                if (availableBed) {
+                    bookedBed = availableBed;
                     setChatMessages(prev => [...prev, { text: `Action: Calling \`bookBed(userId, ${bookedBed.id})\`...`, isBot: true, isAction: true }]);
-                    await new Promise(resolve => setTimeout(resolve, 800));
+                    await handleBookBed(bookedBed);
                     botReply = `Success! I have booked a ${reqType} (Room ${bookedBed.id}) for you. You can see it updated in the Beds panel.`;
                 } else {
                     botReply = `I'm sorry, I checked the system and we currently have no available beds in the ${reqType} section.`;
@@ -222,7 +232,12 @@ export default function PatientDashboard() {
                                     </div>
                                     <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 4 }}>{b.type}</div>
                                     <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>{b.price}</div>
-                                    <button className="btn-primary" disabled={b.status === 'occupied'} style={{ width: '100%', opacity: b.status === 'occupied' ? 0.5 : 1 }}>
+                                    <button 
+                                        className="btn-primary" 
+                                        onClick={() => handleBookBed(b)}
+                                        disabled={b.status === 'occupied' || bookingStatus === 'processing'} 
+                                        style={{ width: '100%', opacity: b.status === 'occupied' ? 0.5 : 1 }}
+                                    >
                                         {b.status === 'available' ? 'Book Now' : 'Currently Full'}
                                     </button>
                                 </div>
@@ -320,6 +335,28 @@ export default function PatientDashboard() {
                 )}
             </div>
 
+            {/* Booking Overlay Notification */}
+            {bookingStatus && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+                    <div style={{ background: 'var(--bg-main)', padding: '32px 48px', borderRadius: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, border: '1px solid var(--bg-nav)', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }}>
+                        {bookingStatus === 'processing' ? (
+                            <>
+                                <div style={{ width: 40, height: 40, borderRadius: '50%', border: '4px solid var(--bg-nav)', borderTopColor: 'var(--accent-primary)', animation: 'spin 1s linear infinite' }} />
+                                <h3 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Processing Booking...</h3>
+                                <p style={{ color: 'var(--text-secondary)' }}>Allocating bed and verifying records.</p>
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle size={48} color="#2c694e" />
+                                <h3 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Booking Confirmed!</h3>
+                                <p style={{ color: 'var(--text-secondary)' }}>The staff has been notified. We will escort you shortly.</p>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+
+
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .tab-btn {
@@ -344,6 +381,10 @@ export default function PatientDashboard() {
                 @keyframes typing {
                     0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
                     40% { transform: scale(1); opacity: 1; }
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
                 }
             `}} />
         </div>

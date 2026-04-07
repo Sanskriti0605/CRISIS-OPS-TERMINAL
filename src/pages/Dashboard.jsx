@@ -4,6 +4,7 @@ import { Activity, AlertTriangle, UserCheck, Stethoscope, BriefcaseMedical, Flas
 export default function Dashboard() {
     const [timeRemaining, setTimeRemaining] = useState(4 * 3600 + 12 * 60 + 59);
     const [selectedBed, setSelectedBed] = useState(null);
+    const [recentBookings, setRecentBookings] = useState([]);
 
     useEffect(() => {
         const targetDate = Date.now() + timeRemaining * 1000;
@@ -14,6 +15,17 @@ export default function Dashboard() {
             setTimeRemaining(diff);
         }, 1000);
         return () => clearInterval(interval);
+    }, []);
+
+    // Polling for recent bookings cross-tab
+    useEffect(() => {
+        const fetchBookings = () => {
+            const saved = JSON.parse(localStorage.getItem('recentBookings') || '[]');
+            setRecentBookings(saved);
+        };
+        fetchBookings();
+        const poll = setInterval(fetchBookings, 2000);
+        return () => clearInterval(poll);
     }, []);
 
     const formatTime = (totalSeconds) => {
@@ -258,6 +270,25 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         </div>
+
+                        <h2 style={{ fontSize: '12px', marginTop: '16px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            RECENT ONLINE BOOKINGS
+                            {recentBookings.length > 0 && <span style={{ background: 'var(--alert-critical)', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', float: 'right' }}>LIVE</span>}
+                        </h2>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {recentBookings.length === 0 ? (
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Awaiting incoming requests...</div>
+                            ) : (
+                                recentBookings.map((bk, i) => (
+                                    <div key={i} style={{ background: 'rgba(157, 240, 218, 0.1)', padding: '12px', borderRadius: '4px', borderLeft: '3px solid var(--accent-primary)', position: 'relative' }}>
+                                        {i === 0 && <span className="text-alert" style={{ position: 'absolute', top: 6, right: 8, fontSize: 9, fontWeight: 'bold', animation: 'blink 1.5s infinite' }}>NEW</span>}
+                                        <div style={{ fontSize: '12px', color: 'var(--text-primary)', marginBottom: '4px', fontWeight: 'bold' }}>{bk.type} (Room {bk.bedId})</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Patient: {bk.patient} | {bk.time}</div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
 
                     </div>
                 </div>
