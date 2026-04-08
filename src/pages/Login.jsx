@@ -6,8 +6,11 @@ export default function Login() {
     const navigate = useNavigate();
 
     const handleLogin = (role) => {
-        // Just directly launch them into the KYC and then the correct dashboard
-        navigate(`/kyc?role=${role}`);
+        if (role === 'patient') {
+            navigate('/patient-dashboard');
+        } else {
+            navigate(`/kyc?role=${role}`);
+        }
     };
 
     return (

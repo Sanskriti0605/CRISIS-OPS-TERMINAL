@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { User, Activity, FileText, Bed, MessageSquare, DownloadCloud, Stethoscope, Send, CheckCircle, Clock, Wind, HeartPulse } from 'lucide-react';
+import { User, Activity, FileText, Bed, MessageSquare, DownloadCloud, Stethoscope, Send, CheckCircle, Clock, Wind, HeartPulse, Upload, Users, Calendar } from 'lucide-react';
 
 export default function PatientDashboard() {
-    const [activeTab, setActiveTab] = useState('overview');
+    const [activeTab, setActiveTab] = useState('doctors');
     const [chatMessages, setChatMessages] = useState([
         { text: "Hello John! I am your AI Health Assistant. How can I help you today?", isBot: true, isAction: false }
     ]);
@@ -15,6 +15,8 @@ export default function PatientDashboard() {
     const [isFetchingDocs, setIsFetchingDocs] = useState(false);
     const [isThinking, setIsThinking] = useState(false);
     const [bookingStatus, setBookingStatus] = useState(null); // null | 'processing' | 'success' | 'kyc-required'
+    const [kycMethod, setKycMethod] = useState(null);
+    const [manualKycData, setManualKycData] = useState({ name: '', age: '', gender: 'Male', idType: 'Aadhar', file: null });
     const [hasSyncedDocs, setHasSyncedDocs] = useState(false);
     const [beds, setBeds] = useState([
         { id: 101, type: "General Ward", price: "₹4,000/day", status: "available" },
@@ -24,6 +26,14 @@ export default function PatientDashboard() {
     ]);
 
     const filteredBeds = beds.filter(b => wardFilter === 'All Wards' || b.type.includes(wardFilter));
+
+    const doctorsList = [
+        { id: 1, name: "Dr. Sarah Jenkins", specialty: "Cardiology", status: "On Rounds", time: "9:00 AM - 5:00 PM" },
+        { id: 2, name: "Dr. Ahmed Khan", specialty: "Neurology", status: "Available", time: "10:00 AM - 6:00 PM" },
+        { id: 3, name: "Dr. Emily Chen", specialty: "Pediatrics", status: "In Surgery", time: "8:00 AM - 4:00 PM" },
+        { id: 4, name: "Dr. Michael Ross", specialty: "General Medicine", status: "Available", time: "9:00 AM - 8:00 PM" },
+        { id: 5, name: "Dr. Olivia Taylor", specialty: "Orthopedics", status: "Consultation", time: "11:00 AM - 7:00 PM" },
+    ];
 
     const fetchDigilockerDocs = () => {
         setIsFetchingDocs(true);
@@ -36,8 +46,40 @@ export default function PatientDashboard() {
             setIsFetchingDocs(false);
             if (bookingStatus === 'kyc-required') {
                 setBookingStatus(null);
+                setKycMethod(null);
             }
         }, 2000);
+    };
+
+    const handleManualSubmit = (e) => {
+        e.preventDefault();
+        setIsFetchingDocs(true);
+        setTimeout(() => {
+            setHasSyncedDocs(true);
+            setIsFetchingDocs(false);
+            if (bookingStatus === 'kyc-required') {
+                setBookingStatus(null);
+                setKycMethod(null);
+            }
+        }, 1500);
+    };
+
+    const handleBookConsultation = async (doctor) => {
+        if (!hasSyncedDocs) {
+            setBookingStatus('kyc-required');
+            return;
+        }
+
+        setBookingStatus('processing');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Save booking to localStorage for Staff Terminal to read
+        const newBooking = { bedId: 'N/A', type: `Consultation - ${doctor.name}`, patient: manualKycData.name || 'John Doe', time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
+        const savedBookings = JSON.parse(localStorage.getItem('recentBookings') || '[]');
+        localStorage.setItem('recentBookings', JSON.stringify([newBooking, ...savedBookings]));
+
+        setBookingStatus('success');
+        setTimeout(() => setBookingStatus(null), 3000); // clear notification
     };
 
     const handleBookBed = async (bedRequest) => {
@@ -138,6 +180,12 @@ export default function PatientDashboard() {
         else if (lowerText.includes('discharge') || lowerText.includes('leave') || lowerText.includes('home')) {
              botReply = "Discharge procedures usually take a couple of hours after the doctor's final approval. Your records indicate you might be eligible soon.";
         }
+        else if (lowerText.includes('good') || lowerText.includes('experienced') || lowerText.includes('qualified')) {
+             botReply = "Ether Health only employs top-tier, board-certified medical professionals. Our doctors are highly experienced and rank among the best in the region.";
+        }
+        else if (lowerText.includes('clean') || lowerText.includes('hygiene') || lowerText.includes('safe')) {
+             botReply = "Our hospital maintains rigorous hygiene standards. All wards and operating theaters are sanitized regularly, ensuring a spotless and safe environment.";
+        }
         else if (lowerText.includes('thank')) {
              botReply = "You're completely welcome! Wishing you a speedy recovery. Let me know if there's anything else you need.";
         }
@@ -160,59 +208,53 @@ export default function PatientDashboard() {
                         <User size={24} />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--accent-primary)', textTransform: 'capitalize' }}>Welcome back, John Doe</h1>
-                        <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Patient ID: HX-99201 | Condition: Stable</div>
+                        <h1 style={{ fontSize: '24px', fontWeight: 600, color: 'var(--accent-primary)', textTransform: 'capitalize' }}>
+                            Welcome
+                        </h1>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '16px' }}>
-                    <button onClick={() => setActiveTab('overview')} className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}>Overview</button>
+                    <button onClick={() => setActiveTab('doctors')} className={`tab-btn ${activeTab === 'doctors' ? 'active' : ''}`}>Doctors</button>
                     <button onClick={() => setActiveTab('beds')} className={`tab-btn ${activeTab === 'beds' ? 'active' : ''}`}>Book a Bed</button>
-                    <button onClick={() => setActiveTab('ai')} className={`tab-btn ${activeTab === 'ai' ? 'active' : ''}`}>AI & Documents</button>
+                    <button onClick={() => setActiveTab('ai')} className={`tab-btn ${activeTab === 'ai' ? 'active' : ''}`}>AI Agent</button>
                 </div>
             </header>
 
             {/* Main Content */}
             <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, maxWidth: 1200, margin: '0 auto', width: '100%' }}>
 
-                {activeTab === 'overview' && (
+
+
+                {activeTab === 'doctors' && (
                     <>
-                        <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Your Current Vitals</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                            {[
-                                { label: "Heart Rate", value: "72 bpm", icon: <Activity />, color: "var(--accent-primary)" },
-                                { label: "SpO2 Level", value: "98%", icon: <Wind />, color: "var(--accent-hover)" },
-                                { label: "Blood Pressure", value: "120/80", icon: <HeartPulse />, color: "var(--accent-primary)" },
-                                { label: "Temperature", value: "98.6°F", icon: <Activity />, color: "var(--accent-hover)" }
-                            ].map((v, i) => (
-                                <div key={i} className="glass-panel" style={{ padding: 24, borderRadius: 12, background: 'var(--bg-card)', border: '1px solid var(--bg-nav)', display: 'flex', alignItems: 'center', gap: 16 }}>
-                                    <div style={{ color: v.color }}>{v.icon}</div>
-                                    <div>
-                                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 1 }}>{v.label}</div>
-                                        <div style={{ fontSize: 24, fontWeight: 700, marginTop: 4 }}>{v.value}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Ether Health Hospital - Doctors Available</h2>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                            {doctorsList.map((doc) => (
+                                <div key={doc.id} className="glass-panel" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 24, border: '1px solid var(--bg-nav)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--bg-nav)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <Stethoscope size={20} />
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: 600, fontSize: 16 }}>{doc.name}</div>
+                                                <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{doc.specialty}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, marginBottom: 12, color: 'var(--text-secondary)' }}>
+                                        <Calendar size={16} /> {doc.time}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--bg-nav)', paddingTop: 16, marginTop: 'auto' }}>
+                                        <span style={{ fontSize: 12, padding: '4px 12px', borderRadius: 12, fontWeight: 500, background: doc.status === 'Available' ? 'rgba(44, 105, 78, 0.1)' : 'rgba(234, 179, 8, 0.1)', color: doc.status === 'Available' ? '#2c694e' : '#ca8a04' }}>
+                                            {doc.status}
+                                        </span>
+                                        <button className="btn-outline" style={{ fontSize: 12, padding: '6px 12px' }} onClick={() => handleBookConsultation(doc)}>Book Consultant</button>
                                     </div>
                                 </div>
                             ))}
-                        </div>
-
-                        <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', marginTop: 16 }}>Ongoing Treatments</h2>
-                        <div className="glass-panel" style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 24, border: '1px solid var(--bg-nav)' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                                {[
-                                    { name: "Physiotherapy Session", time: "2:00 PM today", status: "upcoming" },
-                                    { name: "Antibiotics Administration", time: "6:00 PM today", status: "upcoming" }
-                                ].map((t, i) => (
-                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'var(--bg-main)', borderRadius: 8 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                            <Stethoscope size={20} color="var(--accent-primary)" />
-                                            <div>
-                                                <div style={{ fontWeight: 500 }}>{t.name}</div>
-                                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{t.time}</div>
-                                            </div>
-                                        </div>
-                                        <button className="btn-outline" style={{ fontSize: 12 }}>Reschedule</button>
-                                    </div>
-                                ))}
-                            </div>
                         </div>
                     </>
                 )}
@@ -262,34 +304,10 @@ export default function PatientDashboard() {
                 )}
 
                 {activeTab === 'ai' && (
-                    <div style={{ display: 'flex', gap: '24px', height: '65vh' }}>
-
-                        {/* Digilocker Panel */}
-                        <div className="glass-panel" style={{ flex: 1, background: 'var(--bg-card)', borderRadius: 12, display: 'flex', flexDirection: 'column', border: '1px solid var(--bg-nav)' }}>
-                            <div style={{ padding: 20, borderBottom: '1px solid var(--bg-nav)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600 }}><DownloadCloud color="var(--accent-primary)" /> DigiLocker Sync</div>
-                                <button onClick={fetchDigilockerDocs} disabled={isFetchingDocs} className="btn-primary" style={{ padding: '8px 16px', fontSize: 12 }}>
-                                    {isFetchingDocs ? 'Syncing...' : 'Sync Latest'}
-                                </button>
-                            </div>
-                            <div style={{ padding: 20, flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                {digiDocs.map(doc => (
-                                    <div key={doc.id} style={{ padding: 16, background: 'var(--bg-nav)', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                            <FileText size={20} color="var(--text-secondary)" />
-                                            <div>
-                                                <div style={{ fontSize: 14, fontWeight: 500 }}>{doc.name}</div>
-                                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>Fetched: {doc.date}</div>
-                                            </div>
-                                        </div>
-                                        <CheckCircle size={16} color="#2c694e" />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', height: '65vh' }}>
 
                         {/* AI Assistant Chat */}
-                        <div className="glass-panel" style={{ flex: 1, background: 'var(--bg-card)', borderRadius: 12, display: 'flex', flexDirection: 'column', border: '1px solid var(--bg-nav)' }}>
+                        <div className="glass-panel" style={{ width: '100%', maxWidth: '800px', background: 'var(--bg-card)', borderRadius: 12, display: 'flex', flexDirection: 'column', border: '1px solid var(--bg-nav)' }}>
                             <div style={{ padding: 20, borderBottom: '1px solid var(--bg-nav)', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600 }}>
                                 <MessageSquare color="var(--accent-primary)" /> Sanctuary Health AI
                             </div>
@@ -364,19 +382,70 @@ export default function PatientDashboard() {
                             <>
                                 <FileText size={48} color="var(--accent-primary)" />
                                 <h3 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Documents Required</h3>
-                                <p style={{ color: 'var(--text-secondary)', marginBottom: 8 }}>As this is your first booking, we need to verify your medical identification before proceeding to payment.</p>
-                                <div style={{ display: 'flex', gap: 12, width: '100%', marginTop: 8 }}>
-                                    <button className="btn-outline" style={{ flex: 1 }} onClick={() => setBookingStatus(null)}>Cancel</button>
-                                    <button className="btn-primary" style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }} onClick={fetchDigilockerDocs} disabled={isFetchingDocs}>
-                                        {isFetchingDocs ? 'Syncing...' : <><DownloadCloud size={16} /> Sync DigiLocker</>}
-                                    </button>
-                                </div>
+                                <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>As this is your first booking, we need to verify your medical identity.</p>
+                                
+                                {!kycMethod ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+                                        <button className="btn-primary" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', width: '100%' }} onClick={() => setKycMethod('digilocker')}>
+                                            <DownloadCloud size={20} /> Sync from DigiLocker
+                                        </button>
+                                        <button className="btn-outline" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', width: '100%' }} onClick={() => setKycMethod('manual')}>
+                                            <Upload size={20} /> Manual Upload & KYC Form
+                                        </button>
+                                        <button style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', marginTop: 8, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setBookingStatus(null)}>Cancel Booking</button>
+                                    </div>
+                                ) : kycMethod === 'digilocker' ? (
+                                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                        <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Connecting to DigiLocker servers securely...</p>
+                                        <button className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }} onClick={fetchDigilockerDocs} disabled={isFetchingDocs}>
+                                            {isFetchingDocs ? 'Syncing...' : 'Verify & Continue'}
+                                        </button>
+                                        <button className="btn-outline" style={{ width: '100%' }} onClick={() => setKycMethod(null)} disabled={isFetchingDocs}>Back</button>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleManualSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, textAlign: 'left' }}>
+                                        <div>
+                                            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Full Name</label>
+                                            <input type="text" required style={{ width: '100%', padding: 12, background: 'var(--bg-main)', border: '1px solid var(--bg-nav)', borderRadius: 8, color: 'var(--text-primary)' }} value={manualKycData.name} onChange={(e) => setManualKycData({...manualKycData, name: e.target.value})} />
+                                        </div>
+                                        <div style={{ display: 'flex', gap: 12 }}>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Age</label>
+                                                <input type="number" required style={{ width: '100%', padding: 12, background: 'var(--bg-main)', border: '1px solid var(--bg-nav)', borderRadius: 8, color: 'var(--text-primary)' }} value={manualKycData.age} onChange={(e) => setManualKycData({...manualKycData, age: e.target.value})} />
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Gender</label>
+                                                <select className="input-field" style={{ width: '100%', background: 'var(--bg-main)', border: '1px solid var(--bg-nav)', color: 'var(--text-primary)', padding: 12, borderRadius: 8 }} value={manualKycData.gender} onChange={(e) => setManualKycData({...manualKycData, gender: e.target.value})}>
+                                                    <option>Male</option>
+                                                    <option>Female</option>
+                                                    <option>Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>ID Type</label>
+                                            <select className="input-field" style={{ width: '100%', background: 'var(--bg-main)', border: '1px solid var(--bg-nav)', color: 'var(--text-primary)', padding: 12, borderRadius: 8 }} value={manualKycData.idType} onChange={(e) => setManualKycData({...manualKycData, idType: e.target.value})}>
+                                                <option>Aadhar Card</option>
+                                                <option>PAN Card</option>
+                                                <option>Voter ID</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Upload Document (PDF/JPG)</label>
+                                            <input type="file" required style={{ width: '100%', padding: 12, background: 'var(--bg-main)', border: '1px solid var(--bg-nav)', borderRadius: 8, color: 'var(--text-primary)' }} onChange={(e) => setManualKycData({...manualKycData, file: e.target.files[0]})} />
+                                        </div>
+                                        <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: 8 }} disabled={isFetchingDocs}>
+                                            {isFetchingDocs ? 'Uploading...' : 'Submit Form'}
+                                        </button>
+                                        <button type="button" className="btn-outline" style={{ width: '100%' }} onClick={() => setKycMethod(null)} disabled={isFetchingDocs}>Back</button>
+                                    </form>
+                                )}
                             </>
                         ) : (
                             <>
                                 <CheckCircle size={48} color="#2c694e" />
                                 <h3 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>Booking Confirmed!</h3>
-                                <p style={{ color: 'var(--text-secondary)' }}>The staff has been notified. We will escort you shortly.</p>
+                                <p style={{ color: 'var(--text-secondary)' }}>Your request has been successfully processed and staff notified.</p>
                             </>
                         )}
                     </div>
