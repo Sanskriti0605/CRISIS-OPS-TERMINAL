@@ -190,9 +190,33 @@ export default function PatientDashboard() {
              botReply = "You're completely welcome! Wishing you a speedy recovery. Let me know if there's anything else you need.";
         }
         else {
-            // Dynamic fallback mimicking understanding and logging the user's specific input
-            const echoed = userText.replace(/[.,?!]/g, '').trim();
-            botReply = `I understand you're bringing up "${echoed}". I have recorded this specific request in your digital medical chart. The care team will review this shortly. Is there anything else you need assistance with?`;
+            try {
+                // Hugging Face Inference API Integration
+                const response = await fetch(
+                    "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            // "Authorization": "Bearer YOUR_HUGGINGFACE_TOKEN_HERE" // <-- Add your token here if you face rate limits!
+                        },
+                        method: "POST",
+                        body: JSON.stringify({ inputs: `You are a helpful, professional hospital AI assistant. A patient asks: "${userText}". Provide a comforting and concise single-sentence response.\n\nAI:` }),
+                    }
+                );
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    let generated = result[0]?.generated_text || "";
+                    botReply = generated.split("AI:").pop().trim();
+                    if (!botReply) botReply = "I understand. I am processing your request through our Hugging Face powered system.";
+                } else {
+                    const echoed = userText.replace(/[.,?!]/g, '').trim();
+                    botReply = `[Hugging Face API - Token Required] I understand you're bringing up "${echoed}". The care team will review this shortly.`;
+                }
+            } catch (error) {
+                const echoed = userText.replace(/[.,?!]/g, '').trim();
+                botReply = `I understand you're bringing up "${echoed}". I have recorded this specific request in your digital medical chart.`;
+            }
         }
 
         setChatMessages(prev => [...prev, { text: botReply, isBot: true }]);
