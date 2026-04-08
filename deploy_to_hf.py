@@ -19,15 +19,28 @@ try:
     
     api = HfApi()
     print(f"\n📦 Uploading your code to {repo_id}...")
+    
+    # Upload everything to the root of the space
     api.upload_folder(
-        folder_path=".",         # Uploads everything in current folder
+        folder_path=".",         
         repo_id=repo_id,
-        repo_type="space",       # Since you're hosting an app
-        ignore_patterns=["node_modules", ".git", "dist"], # Ignore heavy build files
+        repo_type="space",       
+        path_in_repo="",         # Force root placement
+        ignore_patterns=["node_modules", ".git", "dist", "__pycache__", ".ipynb_checkpoints"],
     )
     
-    print("\n✅ Upload Complete! Your code is now live on Hugging Face.")
-    print(f"👉 Direct Link: https://huggingface.co/spaces/{repo_id}")
+    # Also specifically ensure README.md is uploaded with root path to overwrite any Gradio default
+    if os.path.exists("README.md"):
+        api.upload_file(
+            path_or_fileobj="README.md",
+            path_in_repo="README.md",
+            repo_id=repo_id,
+            repo_type="space",
+        )
+    
+    print("\n✅ Upload Complete! Your code is now live on the root of your Hugging Face space.")
+    print(f"👉 Link: https://huggingface.co/spaces/{repo_id}")
+    print("\n⏳ Building... Please wait 2-3 minutes for the 'Running' status on Hugging Face.")
     
 except Exception as e:
     print("\n❌ An error occurred during upload:")
